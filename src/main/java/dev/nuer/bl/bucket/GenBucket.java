@@ -7,8 +7,11 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class GenBucket {
@@ -63,6 +66,7 @@ public class GenBucket {
         this.blocksToGenerate = CalculateBlocksToGenerate.getBlocks(this);
         //Add it to the list of buckets that are pending generation
         bucketsPendingGeneration.add(this);
+        doGeneration();
     }
 
     public void doGeneration() {
@@ -140,8 +144,9 @@ public class GenBucket {
         return generationTaskID;
     }
 
-    public ArrayList<Block> getBlocksToGenerate() {
+    @NotNull
+    public List<Block> getBlocksToGenerate() {
         if (blocksToGenerate.size() > 0) return blocksToGenerate;
-        return null;
+        return Collections.emptyList();
     }
 }

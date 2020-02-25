@@ -1,10 +1,8 @@
 package dev.nuer.bl.generation;
 
-import dev.nuer.bl.BucketsLite;
 import dev.nuer.bl.bucket.GenBucket;
 import dev.nuer.bl.managers.FileManager;
 import dev.nuer.bl.utils.PlayerDirectionUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -30,7 +28,7 @@ public class CalculateBlocksToGenerate {
             return calculateBlocks(BlockFace.UP, bucket);
         }
         if (bucket.getType().equalsIgnoreCase("horizontal"))
-            return calculateBlocks(PlayerDirectionUtil.checkDirection(bucket.getOwner()), bucket);
+            return calculateBlocks(PlayerDirectionUtil.checkDirection(bucket.getOwner()).getOppositeFace(), bucket);
         return null;
     }
 
@@ -45,23 +43,20 @@ public class CalculateBlocksToGenerate {
         ArrayList<Block> blocks = new ArrayList<>();
         //Store the maximum generation height as defined in buckets-lite.yml
         int maxHeight = FileManager.get("config").getInt("max-generation-height");
-        //Run this calculation task async since it is quite a large math operation
-        Bukkit.getScheduler().runTaskAsynchronously(BucketsLite.instance, () -> {
-            while (blocks.size() < bucket.getGenerationLength()) {
-                Block currentBlock = bucket.getStartingBlock();
-                if (blocks.size() > 0) currentBlock = blocks.get(blocks.size() - 1);
-                currentBlock = currentBlock.getRelative(face);
-                if (currentBlock.getY() >= maxHeight) break;
-                if (!currentBlock.getType().equals(Material.AIR)) {
-                    if (!bucket.isPseudo()) break;
-                    blocks.add(currentBlock);
-                } else {
-                    blocks.add(currentBlock);
-                }
+
+        while (blocks.size() < bucket.getGenerationLength()) {
+            Block currentBlock = bucket.getStartingBlock();
+            if (blocks.size() > 0) currentBlock = blocks.get(blocks.size() - 1);
+            currentBlock = currentBlock.getRelative(face);
+            if (currentBlock.getY() >= maxHeight) break;
+            if (currentBlock.getType() != Material.AIR
+                    && currentBlock.getType() != Material.WATER
+                    && currentBlock.getType() != Material.STATIONARY_WATER) {
+                if (!bucket.isPseudo()) break;
             }
-            if (blocks.size() == 0) return;
-            bucket.doGeneration();
-        });
+            blocks.add(currentBlock);
+        }
+
         return blocks;
     }
 }

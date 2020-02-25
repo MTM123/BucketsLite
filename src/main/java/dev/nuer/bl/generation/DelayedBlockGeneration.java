@@ -5,6 +5,7 @@ import dev.nuer.bl.bucket.GenBucket;
 import dev.nuer.bl.events.GenBucketPlaceBlockEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -26,7 +27,7 @@ public class DelayedBlockGeneration {
             @Override
             public void run() {
                 //Verify that there are still blocks to generate
-                if (bucket.getBlocksToGenerate() == null
+                if (bucket.getBlocksToGenerate().isEmpty()
                         || bucket.isGenerationStopped()
                         || index >= bucket.getBlocksToGenerate().size() - 1) {
                     //Remove it from the list of buckets actively generating once the generation has
@@ -38,7 +39,9 @@ public class DelayedBlockGeneration {
                 if (!bucket.isGenerationPaused()) {
                     //Store the next block from the array
                     //Check that the next block is AIR, if it isn't check if the bucket is pseudo
-                    if (!bucket.getOwner().getWorld().getBlockAt(bucket.getBlocksToGenerate().get(index).getLocation()).getType().equals(Material.AIR)) {
+
+                    Material blockType = bucket.getOwner().getWorld().getBlockAt(bucket.getBlocksToGenerate().get(index).getLocation()).getType();
+                    if (blockType != Material.AIR && blockType != Material.WATER && blockType != Material.STATIONARY_WATER) {
                         //If the bucket is not sudo cancel the task
                         if (!bucket.isPseudo()) {
                             GenBucket.bucketsActivelyGenerating.remove(bucket.getBucketInstance());
@@ -66,6 +69,6 @@ public class DelayedBlockGeneration {
                 }
             }
             //Run the task with the buckets delay
-        }.runTaskTimerAsynchronously(BucketsLite.instance, 0L, bucket.getDelay()));
+        }.runTaskTimer(BucketsLite.instance, 0L, bucket.getDelay()));
     }
 }
